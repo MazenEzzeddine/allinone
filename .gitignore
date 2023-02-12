@@ -1,0 +1,7 @@
+/consumer/target/
+/.idea/
+/consumer/dependency-reduced-pom.xml
+/producer/target/
+/producer/dependency-reduced-pom.xml
+/scaler/dependency-reduced-pom.xml
+/scaler/target/
