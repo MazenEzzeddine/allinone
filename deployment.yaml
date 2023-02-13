@@ -1,0 +1,226 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: workload
+  name: workload
+spec:
+  restartPolicy: Never
+  containers:
+    - name: java-kafka-producer
+      image: docker.io/mezzeddine/oldproducer:v2
+      #image: docker.io/mezzeddine/traceproducerpersec2h:v0
+      #image: docker.io/mezzeddine/producer200for10:v0 #traceproducerpersec2h:v0
+      env:
+        - name: BOOTSTRAP_SERVERS
+          value: my-cluster-kafka-bootstrap:9092
+        - name: TOPIC
+          value: testtopic1
+        - name: DELAY_MS
+          value: "1000"
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: PRODUCER_ACKS
+          value: "0"
+        - name: ADDITIONAL_CONFIG
+          value: |
+            retries=100
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: cons1persec
+  name: cons1persec
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cons1persec
+  template:
+    metadata:
+      labels:
+        app: cons1persec
+    spec:
+      containers:
+        - name: cons1persec
+          #image: docker.io/mezzeddine/consumerwithproducer:v0
+          #image: docker.io/mezzeddine/consumerwithproducert3:v0
+          #image: docker.io/mezzeddine/consumerwithproducert3:vt
+          #image: docker.io/mezzeddine/secacq:v0 # 0.7 ; good 0.7
+          #image: docker.io/mezzeddine/secacq:v2 # 0.9
+          #image: docker.io/mezzeddine/secacq:v7 # 0.8
+          #image: docker.io/mezzeddine/secacq1:v0 # 1
+          #image: docker.io/mezzeddine/secacq11:v11 # 1
+          #image: docker.io/mezzeddine/secacq7:v07
+          #image: docker.io/mezzeddine/secacqpart:v05 # 0.5 high
+          #image: docker.io/mezzeddine/secacqpart:v051 # 0.5
+          image: docker.io/mezzeddine/secacqpart:v0111 # 1 by parts
+          env:
+            - name: BOOTSTRAP_SERVERS
+              value: my-cluster-kafka-bootstrap:9092
+            - name: TOPIC
+              value: testtopic1
+            - name: GROUP_ID
+              value: testgroup1
+            - name: LOG_LEVEL
+              value: "INFO"
+            - name: SLEEP
+              value: "5" ##"2"
+            - name: MESSAGE_COUNT
+              value: "1000000"
+            - name: ADDITIONAL_CONFIG
+              value: |
+                max.poll.records=100
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: cons1persec2
+  name: cons1persec2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cons1persec2
+  template:
+    metadata:
+      labels:
+        app: cons1persec2
+    spec:
+      containers:
+        - name: cons1persec2
+          #image: docker.io/mezzeddine/consumereventssticky:v0 # demo range
+          #image: docker.io/mezzeddine/consumernoproducer:v0
+          #image: docker.io/mezzeddine/consumertotopic5:v0 #0.7
+          #image: docker.io/mezzeddine/acqissuer:v1 # 0.5
+          #image: docker.io/mezzeddine/acqissuer:v2 # 0.7
+          #image: docker.io/mezzeddine/acqissuer:v7 # 0.6
+          #image: docker.io/mezzeddine/acqissuer8:v1 # 0.8
+          #image: docker.io/mezzeddine/acqissuer11:v11 # 1, OK 1
+          #image: docker.io/mezzeddine/acqissuer19:v194 # 1
+          #image: docker.io/mezzeddine/acqissuer19:v195 # 1
+          #image: docker.io/mezzeddine/acqissuer18:v18 # 1
+          #image: docker.io/mezzeddine/acqissuerone:vone71 # 1
+          #iimage: docker.io/mezzeddine/acqissuerone:vone72 # 7, but low
+          #image: docker.io/mezzeddine/acqissuerone:vone73 # 7, but high
+          #image: docker.io/mezzeddine/acqissuerone:vone76 # 7, but high  by partition
+          #image: docker.io/mezzeddine/acqissuerone:vone77 # 7, but low
+          image: docker.io/mezzeddine/acqissuerone:vone78 # 1, percent per partition
+          #image: docker.io/mezzeddine/acqissuerone:vone785 # 1, percent per partition
+          #image: docker.io/mezzeddine/acqissuerpart:v07
+          env:
+            - name: BOOTSTRAP_SERVERS
+              value: my-cluster-kafka-bootstrap:9092
+            - name: TOPIC
+              value: testtopic2
+            - name: GROUP_ID
+              value: testgroup2
+            - name: LOG_LEVEL
+              value: "INFO"
+            - name: SLEEP
+              value: "5" ##"2"
+            - name: MESSAGE_COUNT
+              value: "1000000"
+            - name: ADDITIONAL_CONFIG
+              value: |
+                max.poll.records=100
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: strimzi
+  name: cons1persec5
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: strimzi
+  template:
+    metadata:
+      labels:
+        app: strimzi
+    spec:
+      containers:
+        - name: cons1persec5
+          #image: docker.io/mezzeddine/consumereventssticky:v0 # demo range
+          #image: docker.io/mezzeddine/consumernoproducer:v0
+          #image: docker.io/mezzeddine/consumertopic5:vm
+          image: docker.io/mezzeddine/consumertopic5:vga
+          ports:
+            - containerPort: 8080
+              name: brom
+          env:
+            - name: BOOTSTRAP_SERVERS
+              value: my-cluster-kafka-bootstrap:9092
+            - name: TOPIC
+              value: testtopic5
+            - name: GROUP_ID
+              value: testgroup5
+            - name: LOG_LEVEL
+              value: "INFO"
+            - name: SLEEP
+              value: "5"
+            - name: MESSAGE_COUNT
+              value: "1000000"
+            - name: ADDITIONAL_CONFIG
+              value: |
+                max.poll.records=100
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: demoobservabilitypodmonitor
+  labels:
+    app: strimzi
+spec:
+  selector:
+    matchLabels:
+      app: strimzi
+  namespaceSelector:
+    matchNames:
+      - default
+  podMetricsEndpoints:
+    - path: /prometheus
+      port: brom
+      interval: 5s
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: grpcassignmentserver
+  name: controllerandscaler
+spec:
+  restartPolicy: Never
+  containers:
+    - name: controllerandscaler
+      #image: docker.io/mezzeddine/controller1:v9  ##OK lazy
+      #image: docker.io/mezzeddine/controller1:v12   ## eager
+      #image: docker.io/mezzeddine/controller14-1-2023   ## eager
+      #image: docker.io/mezzeddine/controller25-1-2023:v0   ## eager
+      #image: docker.io/mezzeddine/controller25-1-2023:v0nl   ## eager
+      image: docker.io/mezzeddine/controller12-2-2022  ## eager
+      ports:
+        - containerPort: 5002
+      env:
+        - name: BOOTSTRAP_SERVERS
+          value: my-cluster-kafka-bootstrap:9092
+        - name: TOPIC
+          value: testtopic1
+        - name: CONSUMER_GROUP
+          value: testgroup1
+        - name: POLL
+          value: "95"
+        - name: POLL2
+          value: "95"
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: SLEEP
+          value: "1000"
+        - name: COOLDOWN
+          #value: "15"
+          value: "30"
